@@ -96,9 +96,7 @@ def make_supervised_data_module(
 
     rank0_print("Loading data...")
 
-    train_json = json.load(open(data_args.data_path, "r"))
     train_dataset = dataset_cls(
-        train_json,
         transform,
         tokenizer,
         slice_config=slice_config,
@@ -106,12 +104,11 @@ def make_supervised_data_module(
         patch_size=patch_size,
         query_nums=query_nums,
         batch_vision=batch_vision,
+        split="train"
     )
 
     if data_args.eval_data_path:
-        eval_json = json.load(open(data_args.eval_data_path, "r"))
         eval_dataset = dataset_cls(
-            eval_json,
             transform,
             tokenizer,
             slice_config=slice_config,
@@ -119,6 +116,7 @@ def make_supervised_data_module(
             patch_size=patch_size,
             query_nums=query_nums,
             batch_vision=batch_vision,
+            split="validation"
         )
     else:
         eval_dataset = None

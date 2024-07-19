@@ -12,15 +12,17 @@ from PIL import Image
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import Dataset
 from transformers import AutoProcessor, AutoTokenizer
+from datasets import load_dataset
+
 
 llama3_chat_template = "{% set loop_messages = messages %}{% for message in loop_messages %}{% set content = '<|start_header_id|>' + message['role'] + '<|end_header_id|>\n\n'+ message['content'] | trim + '<|eot_id|>' %}{% if loop.index0 == 0 %}{% set content = bos_token + content %}{% endif %}{{ content }}{% endfor %}"
+
 
 class SupervisedDataset(Dataset):
     """Dataset for supervised fine-tuning."""
 
     def __init__(
         self,
-        raw_data,
         transform,
         tokenizer,
         slice_config,
@@ -28,25 +30,37 @@ class SupervisedDataset(Dataset):
         patch_size=14,
         query_nums=64,
         batch_vision=False,
+        split="train",
     ):
         super(SupervisedDataset, self).__init__()
-        self.raw_data = raw_data
+        self.raw_data = load_dataset('apoidea/pubtabnet-html', split=split)
         self.tokenizer = tokenizer
         self.transform = transform
         self.slice_config = slice_config
         self.llm_type = llm_type
         self.patch_size = patch_size
-        self.query_nums=query_nums
+        self.query_nums = query_nums
         self.batch_vision = batch_vision
 
     def __len__(self):
         return len(self.raw_data)
 
     def __getitem__(self, i) -> Dict[str, torch.Tensor]:
-        image = Image.open(self.raw_data[i]["image"]).convert("RGB")
+        example = self.raw_data[i]
+        image = example["image"].convert("RGB")
+        conversations = [
+            {
+                "role": "user",
+                "content": "<image>\nReconstruct the table in the image in a HTML without indentation and newline",
+            },
+            {
+                'role': 'assistant',
+                'content': example["html_table"]
+            }
+        ]
         ret = preprocess(
             image,
-            self.raw_data[i]["conversations"],
+            conversations,
             self.tokenizer,
             self.transform,
             query_nums=self.query_nums,
@@ -66,6 +80,7 @@ class SupervisedDataset(Dataset):
         )
 
         return ret
+
 
 def data_collator(examples, padding_value=0, max_length=2048):
     def trim_and_pad(seq, batch_first, padding_value):
@@ -202,17 +217,10 @@ def conversation_to_ids_llama3(conversation, tokenizer):
     )
     input_ids = np.array(input_ids)
 
-    start_header_idxs = np.where(
-        input_ids == tokenizer.convert_tokens_to_ids("<|start_header_id|>")
-    )[0]
-    assistant_idxs = np.where(
-        input_ids == tokenizer.convert_tokens_to_ids("assistant")
-    )[0]
-    end_header_idxs = np.where(
-        input_ids == tokenizer.convert_tokens_to_ids("<|end_header_id|>")
-    )[0]
-    eot_idxs = np.where(
-        input_ids == tokenizer.convert_tokens_to_ids("<|eot_id|>"))[0]
+    start_header_idxs = np.where(input_ids == tokenizer.convert_tokens_to_ids("<|start_header_id|>"))[0]
+    assistant_idxs = np.where(input_ids == tokenizer.convert_tokens_to_ids("assistant"))[0]
+    end_header_idxs = np.where(input_ids == tokenizer.convert_tokens_to_ids("<|end_header_id|>"))[0]
+    eot_idxs = np.where(input_ids == tokenizer.convert_tokens_to_ids("<|eot_id|>"))[0]
 
     context = np.ones_like(input_ids, dtype=np.int8)
 
