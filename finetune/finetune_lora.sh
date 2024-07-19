@@ -22,7 +22,6 @@ DISTRIBUTED_ARGS="
 "
 torchrun $DISTRIBUTED_ARGS finetune.py  \
     --model_name_or_path $MODEL \
-    --model_max_length 8192 \
     --llm_type $LLM_TYPE \
     --data_path $DATA \
     --eval_data_path $EVAL_DATA \
@@ -39,16 +38,16 @@ torchrun $DISTRIBUTED_ARGS finetune.py  \
     --tune_llm false \
     --use_lora true \
     --lora_target_modules "llm\..*layers\.\d+\.self_attn\.(q_proj|k_proj|v_proj|o_proj)" \
-    --model_max_length 2048 \
+    --model_max_length 8192 \
     --max_slice_nums 9 \
     --max_steps 10000 \
     --eval_steps 1000 \
     --output_dir output/output_minicpmv2_lora \
     --logging_dir output/output_minicpmv2_lora \
     --logging_strategy "steps" \
-    --per_device_train_batch_size 2 \
+    --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 1 \
-    --gradient_accumulation_steps 1 \
+    --gradient_accumulation_steps 8 \
     --evaluation_strategy "steps" \
     --save_strategy "steps" \
     --save_steps 1000 \
