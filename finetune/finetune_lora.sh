@@ -22,16 +22,17 @@ DISTRIBUTED_ARGS="
 "
 torchrun $DISTRIBUTED_ARGS finetune.py  \
     --model_name_or_path $MODEL \
+    --model_max_length 8192 \
     --llm_type $LLM_TYPE \
     --data_path $DATA \
     --eval_data_path $EVAL_DATA \
     --remove_unused_columns false \
     --label_names "labels" \
     --prediction_loss_only false \
-    --bf16 false \
-    --bf16_full_eval false \
-    --fp16 true \
-    --fp16_full_eval true \
+    --bf16 true \
+    --bf16_full_eval true \
+    --fp16 false \
+    --fp16_full_eval false \
     --do_train \
     --do_eval \
     --tune_vision true \
