@@ -184,6 +184,8 @@ def train():
         trust_remote_code=True,
         torch_dtype=compute_dtype,
         device_map=device_map,
+        _attn_implementation="flash_attention_2"
+
     )
 
     tokenizer = AutoTokenizer.from_pretrained(
