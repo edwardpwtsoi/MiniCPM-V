@@ -33,4 +33,4 @@ socksio==1.0.0
 gradio
 gradio_client
 deepspeed
-peftee
+peft
