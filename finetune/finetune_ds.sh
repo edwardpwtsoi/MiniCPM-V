@@ -28,27 +28,27 @@ torchrun $DISTRIBUTED_ARGS finetune.py  \
     --remove_unused_columns false \
     --label_names "labels" \
     --prediction_loss_only false \
-    --bf16 false \
-    --bf16_full_eval false \
-    --fp16 true \
-    --fp16_full_eval true \
+    --bf16 true \
+    --bf16_full_eval true \
+    --fp16 false \
+    --fp16_full_eval false \
     --do_train \
     --do_eval \
-    --tune_vision true \
+    --tune_vision false \
     --tune_llm true \
     --model_max_length 2048 \
     --max_slice_nums 9 \
-    --max_steps 10000 \
-    --eval_steps 1000 \
+    --num_train_epochs 1 \
+    --eval_steps 125000 \
     --output_dir output/output_minicpmv2 \
     --logging_dir output/output_minicpmv2 \
     --logging_strategy "steps" \
-    --per_device_train_batch_size 1 \
-    --per_device_eval_batch_size 1 \
-    --gradient_accumulation_steps 1 \
+    --per_device_train_batch_size 2 \
+    --per_device_eval_batch_size 2 \
+    --gradient_accumulation_steps 4 \
     --evaluation_strategy "steps" \
     --save_strategy "steps" \
-    --save_steps 1000 \
+    --save_steps 125000 \
     --save_total_limit 10 \
     --learning_rate 1e-6 \
     --weight_decay 0.1 \
@@ -57,5 +57,5 @@ torchrun $DISTRIBUTED_ARGS finetune.py  \
     --lr_scheduler_type "cosine" \
     --logging_steps 1 \
     --gradient_checkpointing true \
-    --deepspeed ds_config_zero2.json \
+    --deepspeed ds_config_zero3.json \
     --report_to "tensorboard" 
