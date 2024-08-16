@@ -56,14 +56,16 @@ class SupervisedDataset(Dataset):
     def __getitem__(self, i) -> Dict[str, torch.Tensor]:
         try:
             example = self.raw_data[i]
-            image = example["image"].convert("RGB")
-            if isinstance(image, str):
-                images_dict = {"<image>": Image.open(self.raw_data[i]["image"]).convert("RGB")}
+            image = example["image"]
+            if isinstance(image, Image):
+                images_dict = {"<image>": image.convert("RGB")}
+            elif isinstance(image, str):
+                images_dict = {"<image>": Image.open(image).convert("RGB")}
             elif isinstance(image, Dict):
                 ### for multi-images input, the template for every image is <image_xx>, such as <image_00>, <image_01>
-                images_dict = {img_name : Image.open(img_path).convert("RGB") for img_name, img_path in self.raw_data[i]["image"].items()}
-            elif isinstance(image, Image):
-                images_dict = {"<image>": image}
+                images_dict = {img_name: Image.open(img_path).convert("RGB") for img_name, img_path in image.items()}
+            else:
+                raise ValueError(f"Unsupported image type: {type(image)}")
 
             conversations = [
                 {
